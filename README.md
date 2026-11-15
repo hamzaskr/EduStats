@@ -1,228 +1,171 @@
 # EduStats
 
-EduStats is a browser-based student performance tracker for teachers and schools. It helps you collect marks, run class analysis, visualize trends, and export polished PDF reports without a backend.
+**A browser-based student performance analysis tool for teachers and schools.**
 
-The app is designed for real classroom workflows: quick setup, bulk entry/import, meaningful statistics, and shareable outputs for students, parents, and school administration.
+EduStats turns class marks into useful statistical summaries, visualisations, and PDF reports. It is designed to make common classroom analysis tasks easier without requiring a hosted application backend.
 
-## Why This Project Exists
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20EduStats-2f855a)](https://hamzaskr.github.io/EduStats/)
+[![Source Code](https://img.shields.io/badge/Source-GitHub-181717?logo=github)](https://github.com/hamzaskr/EduStats)
 
-Many teachers manage marks in spreadsheets but still need to manually compute insights and prepare report summaries. EduStats exists to reduce that manual work by combining:
+## Why EduStats?
 
-- structured mark entry
-- automatic statistical analysis
-- visual dashboards
-- one-click PDF report generation
+Teachers often have marks stored in spreadsheets but still need to calculate class statistics, identify students who may need additional support, understand performance patterns, and prepare reports. EduStats brings these tasks into one browser-based workflow:
 
-All inside a single static web app.
+1. Set up a class, term, and subjects.
+2. Enter marks manually or import them from a CSV file.
+3. Analyse student and class performance.
+4. Explore charts and distributions.
+5. Export individual or whole-class PDF reports.
 
-## Key Features
+## Features
 
-- Multi-step workflow: Setup -> Enter Marks -> Analysis -> Graphs -> Reports -> Reviews
-- Subject management with per-subject maximum marks and fail thresholds
-- Default fail mark logic based on 40% of each subject max mark
-- CSV import/export for marks and thresholds
-- Long-term term snapshots in IndexedDB with localStorage fallback
-- Predictive grade forecasts and at-risk intervention signals computed locally in a Web Worker
-- Class analysis with:
-  - normalized means (supports different subject max marks)
-  - median, mode, standard deviation
-  - quartiles, IQR, and outlier detection
-  - pass/fail counts and rates per subject
-  - class ranking and support-focused sorting/filtering
-- Graphs (Chart.js): distribution, cumulative frequency, subject performance, best-fit trend, radar
-- PDF reports (jsPDF + AutoTable):
-  - individual student report
-  - whole class report
-- Theme toggle (light/dark), compact table mode, responsive UI, keyboard navigation, reduced-motion support
+### Class and subject setup
 
-## Tech Stack
+- Create a class analysis workspace with school, teacher, class, and term information.
+- Add subjects and configure each subject's maximum mark and fail threshold.
+- Use the default fail threshold of 40% of the subject's maximum mark, or adjust it.
 
-- HTML/CSS/JavaScript (vanilla)
-- Web Workers for non-blocking statistics and predictive inference: `analysis.worker.js`, `js/core/ml.worker.js`
-- Shared core modules: `js/core/stats.js`, `js/core/csv-utils.js`, `js/core/features.js`, `js/core/db.js`
-- Charting: Chart.js (self-hosted in `lib/`)
-- PDF generation: jsPDF + jsPDF AutoTable (self-hosted in `lib/`)
-- CSV parsing: Papa Parse (self-hosted in `lib/`)
-- Local persistence: IndexedDB with a localStorage fallback
-- Predictive model pipeline: offline Python training via `tools/train_predictive_model.py`; ONNX inference is optional and falls back to a transparent local heuristic when the model/runtime asset is unavailable
+### Marks and data handling
 
-## Project Structure
+- Enter student marks in the browser.
+- Import and export marks using CSV files.
+- Handle different maximum marks across subjects through normalised class averages.
+- Treat blank marks as missing rather than counting them as zero.
+- Save term snapshots in IndexedDB, with a localStorage fallback for supported data.
 
-```text
-.
-├── index.html            # Primary source page for development + release
-├── analysis.worker.js    # Worker-based analysis engine
-├── js/core/              # Shared analysis + CSV modules
-├── tests/                # Unit tests
-├── release.ps1           # Release script: stage + commit + push
-├── icons/edu-outline/    # UI icon set
-├── lib/                  # Self-hosted third-party libs
-├── favicon.ico
-└── favicon.svg
-```
+### Statistical analysis
 
-## Getting Started
+EduStats calculates a range of descriptive statistics and class-level indicators, including:
 
-### 1. Clone
+- Mean, median, and mode.
+- Standard deviation.
+- Quartiles and interquartile range (IQR).
+- Outlier detection.
+- Pass/fail counts and rates by subject.
+- Class rankings and support-oriented sorting or filtering.
+
+### Visualisations and reports
+
+- Charts for mark distributions, cumulative frequency, subject performance, trends, and radar comparisons.
+- Individual student PDF reports.
+- Whole-class PDF reports.
+- Light and dark themes, compact table mode, keyboard navigation, and reduced-motion support.
+
+### Optional predictive analysis
+
+The project includes an optional predictive-grade workflow. Model training is performed offline with Python. In the browser, predictive inference can use an ONNX model when the required model/runtime assets are available; otherwise, the application uses its documented local heuristic fallback. Predictions should be treated as indicative support signals, not definitive judgements about a student's ability or future results.
+
+## Technology
+
+- **Frontend:** HTML, CSS, and vanilla JavaScript.
+- **Statistical processing:** JavaScript modules and Web Workers.
+- **Charts:** Chart.js.
+- **PDF generation:** jsPDF and jsPDF-AutoTable.
+- **CSV processing:** Papa Parse.
+- **Browser storage:** IndexedDB with a localStorage fallback.
+- **Optional model workflow:** Python, scikit-learn, skl2onnx, and ONNX inference support.
+- **Testing:** Node.js built-in test runner and project-specific smoke/stress checks.
+
+## Run locally
+
+EduStats is a static browser application. For local development, serve the repository through a local HTTP server rather than opening `index.html` directly. This helps browser workers and asset loading behave consistently.
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/muhammadhamza27-commits/EduStats.git
+git clone https://github.com/hamzaskr/EduStats.git
 cd EduStats
 ```
 
-### 2. Run Locally
+### 2. Start a local server
 
-Use a local static server (recommended) instead of opening the file directly, so browser worker/loading behavior is consistent.
-
-Example with Python:
+Using Python:
 
 ```bash
 python -m http.server 8080
 ```
 
-Then open:
+Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-```text
-http://localhost:8080/index.html
+You can use another static file server if preferred.
+
+## Using CSV files
+
+EduStats accepts a student data table with a header row. A simple example is:
+
+```csv
+Student ID,Full Name,Mathematics,English,Mean
+G9B001,Aisha Mwangi,91,84,
+G9B002,Brian Otieno,67,58,
 ```
 
-## How to Use
+The `Mean` column is optional; EduStats recalculates it. Blank subject marks are treated as missing values.
 
-1. Setup class info (school, teacher, class, term).
-2. Add subjects (up to 12), then adjust max/fail marks if needed.
-3. Enter student marks manually or import a CSV.
-4. Click Analyze Data.
-5. Review analysis tables and graph insights.
-6. Download student or class PDF reports.
-
-## CSV Format
-
-EduStats supports threshold metadata lines plus the student data table.
-
-### Threshold Rows (optional, repeat per subject)
+Optional subject threshold metadata can be included before the student table:
 
 ```csv
 __EDUSTATS_THRESHOLD__,Mathematics,100,40
 __EDUSTATS_THRESHOLD__,English,100,40
 ```
 
-Format:
+Each threshold row follows this format:
 
 ```text
-__EDUSTATS_THRESHOLD__,<Subject>,<MaxMark>,<FailMark>
+__EDUSTATS_THRESHOLD__,<Subject>,<MaximumMark>,<FailMark>
 ```
 
-### Student Header Row (required)
+## Development checks
 
-```csv
-Student ID,Full Name,Mathematics,English,Mean
-```
-
-`Mean` is optional in imported files and is recomputed by EduStats.
-
-### Student Rows
-
-```csv
-G9B001,Aisha Mwangi,91,84,
-G9B002,Brian Otieno,67,58,
-```
-
-Blank marks are allowed and treated as missing (not counted in averages).
-
-## Excel Test Data Extraction
-
-The repository now includes a workbook extractor for the sample Excel files in `RawTestData/`.
-
-- Script: `tools/extract_raw_test_data.py`
-- Input: `c:\Users\Lenovo\Desktop\Code\RawTestData`
-- Output: `generated-test-data/`
-
-For each workbook, the script creates:
-
-- `edustats-import.csv` for direct import into EduStats
-- `students-raw.csv` with the full extracted student record
-- `manifest.csv` and `summary.json` for review
-
-Run it with:
-
-```powershell
-& .\.venv\Scripts\python.exe .\Projects\tools\extract_raw_test_data.py
-```
-
-## Predictive model training
-
-Install `pandas`, `numpy`, `scikit-learn`, `skl2onnx`, and `onnxruntime`, then run:
-
-```powershell
-npm run train:model -- --data-dir generated-test-data --output models/edustats_v2.onnx
-```
-
-The script performs stratified five-fold evaluation, prints precision/recall/F1, and writes the ONNX classifier locally. The browser remains functional without this optional asset.
-
-## Data and Privacy Notes
-
-EduStats is frontend-only and stores working data in browser local storage (history, theme, view preferences).
-
-External services/resources used by the app:
-
-- Google Fonts
-- GoatCounter analytics script (disabled by default, user opt-in from app settings)
-- Review links (Google Form and Gmail compose)
-
-Charting/PDF/CSV dependencies are self-hosted in `lib/` for reliability and offline-friendly operation.
-
-## Development and Release Workflow
-
-`index.html` is the only source page and release target.
-
-Use the provided PowerShell script:
-
-```powershell
-./release.ps1
-```
-
-What it does:
-
-- verifies required files exist
-- stages app/runtime/test/workflow updates
-- pushes to `origin/main`
-
-Optional flags:
-
-```powershell
-./release.ps1 -Message "Release: improve analysis tables"
-./release.ps1 -NoPush
-```
-
-## Testing
-
-Run automated checks from `Projects/`:
+The repository includes Node-based tests and smoke/stress checks. With Node.js installed, run these commands from the repository root:
 
 ```bash
-npm install
 npm test
 npm run smoke
 npm run test:stress
 ```
 
-`npm run test:stress` exercises large cohorts, malformed records, missing and non-finite marks, extreme thresholds, hostile quoted CSV cells, multiline CSV fields, empty imports, prediction bounds, and roundtrip scaling.
+The optional model-training script is:
 
-CI runs these commands in GitHub Actions via `.github/workflows/ci.yml`.
+```bash
+npm run train:model -- --data-dir generated-test-data --output models/edustats_v2.onnx
+```
+
+The model-training workflow requires the Python packages used by the training script, including `pandas`, `numpy`, `scikit-learn`, `skl2onnx`, and `onnxruntime`. The predictive feature is optional; the core application remains usable without a locally generated model asset.
+
+## Data and privacy
+
+EduStats is designed to work without an application backend. Class data and working state are stored in the browser rather than in a central EduStats account. This means:
+
+- Data is associated with the browser and device where it was entered.
+- It is not automatically synchronised between devices or browsers.
+- Clearing browser storage can remove locally saved data, so keep exported copies of important records.
+- The application can load external resources such as Google Fonts. Optional analytics are disabled by default and can be enabled through the application's settings.
+
+Do not enter identifiable student information on a shared or untrusted device. Follow your school or institution's data-handling policies when working with student records.
+
+## Project structure
+
+```text
+EduStats/
+├── index.html              # Main application
+├── analysis.worker.js      # Background analysis worker
+├── js/core/                # Shared statistics, CSV, feature, and database modules
+├── tests/                  # Unit and stress tests
+├── tools/                  # Data-generation and model-training utilities
+├── generated-test-data/    # Generated sample/test datasets
+├── lib/                    # Self-hosted browser libraries
+├── icons/                  # Application icons
+└── .github/workflows/      # CI workflow
+```
+
+## Project status
+
+EduStats is an actively developed personal project. The core workflow is available in the live application; predictive analysis is optional and depends on the availability of its model/runtime assets.
 
 ## Contributing
 
-Contributions are welcome.
-
-Suggested flow:
-
-1. Fork the repo
-2. Create a feature branch
-3. Make focused changes
-4. Test in browser (desktop + mobile widths)
-5. Submit a pull request with a clear summary
+Suggestions, bug reports, and focused pull requests are welcome. For a change, please describe the problem it addresses, explain the implementation, and include relevant test results. When changing calculations, include examples or tests that make the statistical behaviour clear.
 
 ## License
 
-This project is licensed for personal and non-commercial institutional use only.
-
-See [LICENSE](LICENSE) for the full text.
+EduStats is licensed for personal and non-commercial institutional use only. See the [`LICENSE`](LICENSE) file for the full terms. The license does not grant unrestricted commercial reuse.
